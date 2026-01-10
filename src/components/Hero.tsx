@@ -1,0 +1,370 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { Volume2, VolumeX, Menu, X, Briefcase, Info, Wrench, Users, Mail, Home } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { AnimeNavBar } from './ui/anime-navbar'
+
+export function Hero() {
+  const [isMuted, setIsMuted] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isVideoReady, setIsVideoReady] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  const toggleMute = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const player = iframeRef.current.contentWindow
+
+      if (isMuted) {
+        // Unmute: set volume to 100% and unmute
+        player.postMessage(JSON.stringify({ method: 'setVolume', value: 1 }), '*')
+        player.postMessage(JSON.stringify({ method: 'setMuted', value: false }), '*')
+        console.log('Unmuting video')
+      } else {
+        // Mute: set volume to 0 and mute
+        player.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*')
+        player.postMessage(JSON.stringify({ method: 'setMuted', value: true }), '*')
+        console.log('Muting video')
+      }
+      setIsMuted(!isMuted)
+    } else {
+      console.error('Iframe or contentWindow not available')
+    }
+  }
+
+  // Handle Vimeo Messages to detect playback start
+  useEffect(() => {
+    const handleVimeoMessage = (event: MessageEvent) => {
+      if (!event.origin.includes('vimeo')) return
+
+      try {
+        const data = JSON.parse(event.data)
+
+        // When video is ready, we ask it to play (just in case)
+        if (data.event === 'ready') {
+          if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'play' }), '*')
+            iframeRef.current.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'timeupdate' }), '*')
+          }
+        }
+
+        // When video actually starts playing or progressing
+        if (data.event === 'play' || data.event === 'timeupdate') {
+          if (!isVideoReady) {
+            setIsVideoReady(true)
+          }
+        }
+      } catch (e) {
+        // ignore non-JSON messages
+      }
+    }
+
+    window.addEventListener('message', handleVimeoMessage)
+    return () => window.removeEventListener('message', handleVimeoMessage)
+  }, [isVideoReady])
+
+  // Scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      setIsScrolled(scrollTop > 50) // Show background after 50px scroll
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Handle body scroll lock when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
+
+  // Close mobile menu on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    if (isMobileMenuOpen) {
+      window.addEventListener('scroll', handleScroll)
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [isMobileMenuOpen])
+
+
+
+  return (
+    <div className="relative h-screen w-full overflow-hidden bg-black">
+      {/* Instant Local Video (Motion Poster) - Z-20 (On Top) - Fades OUT when Vimeo is ready */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className={`absolute inset-0 w-full h-full object-cover z-20 transition-opacity duration-1000 ease-out pointer-events-none ${isVideoReady ? 'opacity-0' : 'opacity-100'}`}
+        style={{
+          transform: 'scale(1.1)',
+          transformOrigin: 'center center'
+        }}
+      >
+        <source src="/website-intro-video.mp4" type="video/mp4" />
+      </video>
+
+      {/* MASSIVE VIDEO - Z-10 (Behind Poster) - Always Visible (but covered) */}
+      <iframe
+        ref={iframeRef}
+        src="https://player.vimeo.com/video/1151965251?api=1&background=1&autoplay=1&loop=1&byline=0&title=0&muted=1&playsinline=1&autopause=0&dnt=1"
+        className="absolute inset-0 w-full h-full z-10"
+        frameBorder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        loading="eager"
+        style={{
+          pointerEvents: 'none',
+          width: '100%',
+          height: '100%',
+          transform: 'scale(1.5)',
+          transformOrigin: 'center center'
+        }}
+      ></iframe>
+
+      {/* Dark Overlay isn't strictly needed if we have brightness filter on poster and brightness on video via CSS if needed, but the previous one had it. Let's start without explicit overlay div to match previous iframe state which likely had built-in darkness or we just used the poster brightness. The previous iframe implementation didn't have an extra overlay div in the code just before local video. */}
+
+      {/* AnimeNavBar - Desktop Only */}
+      <div className="hidden md:block">
+        <AnimeNavBar
+          items={[
+            { name: "Home", url: "#", icon: Home },
+            { name: "Work", url: "#portfolio", icon: Briefcase },
+            { name: "Process", url: "#about", icon: Info },
+            { name: "Services", url: "#services", icon: Wrench },
+            { name: "Contact", url: "#contact", icon: Mail },
+          ]}
+          defaultActive="Home"
+        />
+      </div>
+
+      {/* Logo - Left Side (Desktop) */}
+      <motion.div
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+        className="hidden md:flex fixed top-11 left-8 z-[9999] items-center cursor-pointer"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      >
+        <span className="text-2xl font-black tracking-tight text-white drop-shadow-md">
+          <span className="text-[#CCFF00]">WTF</span>.STUDIOS
+        </span>
+      </motion.div>
+
+      {/* Floating Controls - Right Side (Desktop) */}
+      <motion.div
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+        className="hidden md:flex fixed top-11 right-8 z-[9999] items-center space-x-3"
+      >
+        {/* Sound Toggle */}
+        <div className="relative">
+          <button
+            onClick={toggleMute}
+            className="glass-effect p-3 rounded-full text-white hover:bg-white/20 gentle-animation cursor-pointer"
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+
+          {isMuted && (
+            <div className="absolute -bottom-10 right-0 flex items-center text-white/80">
+              <span className="whitespace-nowrap font-medium text-sm mr-2">Sound On</span>
+              <span className="text-lg">↗</span>
+            </div>
+          )}
+        </div>
+
+        {/* CTA Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            const contactSection = document.getElementById('contact')
+            contactSection?.scrollIntoView({ behavior: 'smooth' })
+          }}
+          className="bg-red-600 backdrop-blur-sm text-white font-semibold px-6 py-3 rounded-md hover:bg-red-700 gentle-animation cursor-pointer"
+        >
+          Book a Call
+        </motion.button>
+      </motion.div>
+
+      {/* Mobile Header - Logo + Controls */}
+      <motion.nav
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.3 }}
+        className="md:hidden fixed top-0 left-0 right-0 w-full z-[110]"
+      >
+        <div
+          className={`w-full px-6 py-4 transition-all duration-300 ease-out ${isScrolled
+            ? 'bg-black/80 backdrop-blur-xl border-b border-white/10'
+            : 'bg-transparent'
+            }`}
+        >
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center cursor-pointer"
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            >
+              <span className="text-2xl font-black tracking-tight text-white">
+                <span className="text-[#CCFF00]">WTF</span>.STUDIOS
+              </span>
+            </motion.div>
+
+            {/* Right Side - Sound Toggle + Hamburger */}
+            <div className="flex items-center space-x-3">
+              {/* Sound Toggle */}
+              <button
+                onClick={() => setIsMuted(!isMuted)}
+                className="glass-effect p-3 rounded-full text-white hover:bg-white/20 gentle-animation cursor-pointer"
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+
+              {/* Hamburger Menu */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="glass-effect p-3 rounded-full text-white hover:bg-white/20 active:bg-white/30 gentle-animation cursor-pointer z-[120] relative"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.nav>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-md z-[80] cursor-pointer"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Panel */}
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: isMobileMenuOpen ? '0%' : '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="md:hidden fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-black/90 backdrop-blur-xl border-l border-white/10 z-[90] mobile-menu-panel pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col h-full">
+          {/* Close Button at the top */}
+          <div className="flex justify-end p-4">
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="glass-effect p-3 rounded-full text-white hover:bg-white/20 active:bg-white/30 gentle-animation cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex flex-col px-6 pb-6 h-full">
+            {/* Mobile Navigation Links */}
+            <div className="flex flex-col space-y-4 text-white">
+              <a
+                href="#"
+                className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </a>
+              <a
+                href="#portfolio"
+                className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Work
+              </a>
+              <a
+                href="#about"
+                className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Process
+              </a>
+              <a
+                href="#services"
+                className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Services
+              </a>
+              <a
+                href="#contact"
+                className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </a>
+            </div>
+
+            {/* Mobile CTA Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                const contactSection = document.getElementById('contact')
+                contactSection?.scrollIntoView({ behavior: 'smooth' })
+                setIsMobileMenuOpen(false)
+              }}
+              className="bg-red-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-700 active:bg-red-800 gentle-animation mt-8 cursor-pointer"
+            >
+              Book a Call
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+
+
+
+      {/* Big Studio Title - Lower Left */}
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, delay: 1.5 }}
+        className="absolute bottom-12 left-6 sm:left-8 lg:left-12 z-40"
+      >
+        <div className="max-w-2xl">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-tight text-[#CCFF00] drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
+            <span className="block">AI AD FILM</span>
+            <span className="block">PRODUCTION</span>
+            <span className="block">WITHOUT LIMITS</span>
+          </h1>
+        </div>
+      </motion.div>
+
+
+    </div>
+  )
+}
