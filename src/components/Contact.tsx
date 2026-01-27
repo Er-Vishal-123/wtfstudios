@@ -2,7 +2,18 @@
 
 import { useEffect } from 'react'
 
-export function Contact() {
+interface ContactProps {
+  isPage?: boolean
+}
+
+export function Contact({ isPage = false }: ContactProps) {
+  const HeaderTag = isPage ? 'h1' : 'h2'
+  const headerContent = isPage ? (
+    <span className="block mb-2">Contact WTF Studios</span>
+  ) : (
+    <span className="block mb-2">Ready to Light Up the Screen?</span>
+  )
+
 
   useEffect(() => {
     // Load Cal.com embed script
@@ -70,10 +81,9 @@ export function Contact() {
             <div className="w-3 h-3 bg-accent-blue rounded-full animate-pulse" />
           </div>
 
-          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-8">
-            <span className="block mb-2">Ready to Light Up the Screen?</span>
-
-          </h2>
+          <HeaderTag className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-8">
+            {headerContent}
+          </HeaderTag>
 
           <p className="text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
             Book a discovery call to discuss your project and see how we can bring your vision to cinematic reality

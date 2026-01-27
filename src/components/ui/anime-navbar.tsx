@@ -42,7 +42,11 @@ export function AnimeNavBar({ items, className, defaultActive = "Home" }: NavBar
             const scrollPosition = window.scrollY + window.innerHeight / 3 // Offset for better triggering
 
             for (const item of items) {
-                const targetId = item.url.replace('#', '')
+                // Handle both "#section" and "/#section" formats
+                const isHashLink = item.url.includes('#')
+                if (!isHashLink) continue
+
+                const targetId = item.url.split('#')[1]
                 if (!targetId) {
                     // Handle "Home" or empty URL - usually top of page
                     if (scrollPosition < 500 && item.name === defaultActive) { // Assuming Home is default
@@ -72,14 +76,44 @@ export function AnimeNavBar({ items, className, defaultActive = "Home" }: NavBar
     }, [items, defaultActive])
 
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: NavItem) => {
-        e.preventDefault()
-        setActiveTab(item.name)
+        // If it's a direct route (not a hash link), let the browser handle it generally (or use default for SPA)
+        // But since we want to support both scroll and navigate:
+        const isHashLink = item.url.includes('#')
+        const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html'
 
-        // Smooth scroll to section
-        const targetId = item.url.replace('#', '')
-        const targetElement = document.getElementById(targetId)
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth' })
+        // Map SEO routes to Section IDs for homepage scrolling
+        const routeToIdMap: Record<string, string> = {
+            '/about': 'about-agency',
+            '/contact': 'contact'
+        }
+
+        // Check if this is a mapped route AND we are on homepage
+        const mappedId = routeToIdMap[item.url]
+
+        if (isHomePage && (isHashLink || mappedId)) {
+            e.preventDefault()
+
+            let targetId = ''
+            if (mappedId) {
+                targetId = mappedId
+            } else if (isHashLink) {
+                targetId = item.url.split('#')[1]
+            }
+
+            if (targetId) {
+                const scrollTarget = targetId === '' ? 'hero' : targetId // Handle /# or # to top
+                const targetElement = document.getElementById(scrollTarget) || document.getElementById('hero')
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' })
+                } else if (targetId === '') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                }
+                setActiveTab(item.name)
+            }
+        } else {
+            // It's a real page link like '/about' and we are NOT on home (or it's an unmapped external link)
+            // Let default behavior happen (navigate)
+            // Or use router navigation if we want SPA feel without reload, but <a href> is better for SEO crawlability
         }
     }
 

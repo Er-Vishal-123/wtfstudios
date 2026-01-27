@@ -4,7 +4,14 @@ import footerMonster from '/footer-monster.png'
 import footerAstronaut from '/footer-astronaut.png'
 import footerCharacters from '/footer-characters.png'
 
-export function AboutAgency() {
+interface AboutAgencyProps {
+    isPage?: boolean
+}
+
+export function AboutAgency({ isPage = false }: AboutAgencyProps) {
+    const HeaderTag = isPage ? 'h1' : 'h2'
+    const headerText = isPage ? 'About WTF Studios' : 'About Us'
+
     return (
         <section className="relative py-24 bg-background overflow-hidden border-t border-white/5">
             {/* Background Elements */}
@@ -26,9 +33,9 @@ export function AboutAgency() {
                         <div className="w-3 h-3 bg-accent-blue rounded-full animate-pulse" />
                     </div>
 
-                    <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-6 text-foreground">
-                        About Us
-                    </h2>
+                    <HeaderTag className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-6 text-foreground">
+                        {headerText}
+                    </HeaderTag>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">

@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { Hero } from './components/Hero'
 import { Portfolio } from './components/Portfolio'
 import { VelocityScroll } from './components/ui/velocity-text'
@@ -10,7 +11,7 @@ import { Testimonials } from './components/Testimonials'
 import { Contact } from './components/Contact'
 import { Footer } from './components/Footer'
 import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { SiteHeader } from './components/SiteHeader'
 
 function ScrollToHash() {
   const { hash } = useLocation()
@@ -34,6 +35,11 @@ function ScrollToHash() {
 function HomePage() {
   return (
     <main className="relative" role="main" style={{ overflow: 'visible' }}>
+      <Helmet>
+        <title>WTF Studios | AI-Powered Creative & Media Agency</title>
+        <meta name="description" content="WTF Studios is an AI-powered creative agency reimagining ads for Gen Z. We don't run ads; we launch internet-breaking moments." />
+        <link rel="canonical" href="https://thewtfstudio.com/" />
+      </Helmet>
       <section id="hero" aria-label="Hero section">
         <Hero />
       </section>
@@ -66,9 +72,14 @@ function HomePage() {
 function AboutPage() {
   return (
     <main className="relative" role="main">
-      <div className="pt-20"> {/* Offset for navbar */}
-        <AboutAgency />
-        <About />
+      <Helmet>
+        <title>About WTF Studios | AI Creative & Media Agency</title>
+        <meta name="description" content="Learn about WTF Studios, the AI-powered creative agency founded by Vishal Yadav. We blend AI speed with human intuition to create viral moments." />
+        <link rel="canonical" href="https://thewtfstudio.com/about" />
+      </Helmet>
+      <SiteHeader />
+      <div className="pt-0">
+        <AboutAgency isPage={true} />
       </div>
     </main>
   )
@@ -77,8 +88,14 @@ function AboutPage() {
 function ContactPage() {
   return (
     <main className="relative" role="main">
-      <div className="pt-20"> {/* Offset for navbar */}
-        <Contact />
+      <Helmet>
+        <title>Contact WTF Studios | Work With Us</title>
+        <meta name="description" content="Ready to launch an internet-breaking moment? Book a discovery call with WTF Studios, the AI-powered creative agency." />
+        <link rel="canonical" href="https://thewtfstudio.com/contact" />
+      </Helmet>
+      <SiteHeader />
+      <div className="pt-0">
+        <Contact isPage={true} />
       </div>
     </main>
   )
@@ -86,16 +103,18 @@ function ContactPage() {
 
 export default function App() {
   return (
-    <Router>
-      <ScrollToHash />
-      <div className="min-h-screen bg-background text-foreground" style={{ overflow: 'visible' }}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <ScrollToHash />
+        <div className="min-h-screen bg-background text-foreground" style={{ overflow: 'visible' }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    </HelmetProvider>
   )
 }
