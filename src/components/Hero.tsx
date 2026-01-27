@@ -152,6 +152,7 @@ export function Hero() {
             { name: "Work", url: "#portfolio", icon: Briefcase },
             { name: "Process", url: "#about", icon: Info },
             { name: "Services", url: "#services", icon: Wrench },
+            { name: "About Us", url: "#about-agency", icon: Users },
             { name: "Contact", url: "#contact", icon: Mail },
           ]}
           defaultActive="Home"
@@ -321,6 +322,13 @@ export function Hero() {
                 Services
               </a>
               <a
+                href="#about-agency"
+                className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                About Us
+              </a>
+              <a
                 href="#contact"
                 className="mobile-menu-link px-4 py-3 hover:text-white/80 hover:bg-white/10 rounded-lg gentle-animation font-medium text-lg active:bg-white/20"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -357,9 +365,10 @@ export function Hero() {
       >
         <div className="max-w-2xl">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-tight text-[#CCFF00] drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
-            <span className="block">AI AD FILM</span>
-            <span className="block">PRODUCTION</span>
-            <span className="block">WITHOUT LIMITS</span>
+            <span className="block">WTF STUDIOS</span>
+            <span className="block text-white">AI POWERED</span>
+            <span className="block text-white">CREATIVE & MEDIA</span>
+            <span className="block">AGENCY</span>
           </h1>
         </div>
       </motion.div>
