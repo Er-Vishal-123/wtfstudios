@@ -243,14 +243,34 @@ export function SiteHeader({ isMuted = true, toggleMute, showSoundToggle = false
                                     // But for simplicity in mobile menu, href is usually plenty.
                                     // Let's ensure smooth scroll if strictly on homepage and hash link.
                                     onClick={(e) => {
-                                        // Similar logic to AnimeNavBar but simpler for mobile menu
-                                        if ((location.pathname === '/' || location.pathname === '/index.html') && item.url.startsWith('/#')) {
-                                            // Extract hash
-                                            const targetId = item.url.split('#')[1]
-                                            const targetEl = document.getElementById(targetId || 'hero')
-                                            if (targetEl) {
+                                        // Unified logic for mobile menu navigation
+                                        const isHomePage = location.pathname === '/' || location.pathname === '/index.html'
+
+                                        // Map SEO routes to Section IDs for homepage scrolling
+                                        const routeToIdMap: Record<string, string> = {
+                                            '/about': 'about-agency',
+                                            '/contact': 'contact'
+                                        }
+
+                                        const mappedId = routeToIdMap[item.url]
+
+                                        // Handle scroll if on homepage AND (it's a hash link OR a mapped SEO route)
+                                        if (isHomePage) {
+                                            let targetId = ''
+
+                                            if (mappedId) {
+                                                targetId = mappedId
+                                            } else if (item.url.startsWith('/#')) {
+                                                // Extract hash for standard anchor links
+                                                targetId = item.url.split('#')[1]
+                                            }
+
+                                            if (targetId) {
                                                 e.preventDefault()
-                                                targetEl.scrollIntoView({ behavior: 'smooth' })
+                                                const targetEl = document.getElementById(targetId || 'hero') // Fallback to hero/top
+                                                if (targetEl) {
+                                                    targetEl.scrollIntoView({ behavior: 'smooth' })
+                                                }
                                             }
                                         }
                                         setIsMobileMenuOpen(false)
