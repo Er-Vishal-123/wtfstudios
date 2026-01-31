@@ -87,8 +87,8 @@ export function SiteHeader({ isMuted = true, toggleMute, showSoundToggle = false
         { name: "Work", url: "/#portfolio", icon: Briefcase },
         { name: "Process", url: "/#about", icon: Info },
         { name: "Services", url: "/#services", icon: Wrench },
-        { name: "About Us", url: "/about", icon: Users },
         { name: "Contact", url: "/contact", icon: Mail },
+        { name: "About Us", url: "/about", icon: Users },
     ]
 
     return (

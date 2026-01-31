@@ -41,28 +41,44 @@ export function AnimeNavBar({ items, className, defaultActive = "Home" }: NavBar
         const handleScroll = () => {
             const scrollPosition = window.scrollY + window.innerHeight / 3 // Offset for better triggering
 
-            for (const item of items) {
-                // Handle both "#section" and "/#section" formats
-                const isHashLink = item.url.includes('#')
-                if (!isHashLink) continue
+            // Map SEO routes to Section IDs for homepage scrolling
+            const routeToIdMap: Record<string, string> = {
+                '/about': 'about-agency',
+                '/contact': 'contact'
+            }
 
-                const targetId = item.url.split('#')[1]
-                if (!targetId) {
-                    // Handle "Home" or empty URL - usually top of page
-                    if (scrollPosition < 500 && item.name === defaultActive) { // Assuming Home is default
-                        setActiveTab(item.name)
-                    }
-                    continue;
+            for (const item of items) {
+                // Handle both "#section", "/#section", AND mapped routes like "/about"
+                const isHashLink = item.url.includes('#')
+                const mappedId = routeToIdMap[item.url]
+
+                if (!isHashLink && !mappedId && item.name !== defaultActive) continue
+
+                let targetId = ''
+                if (mappedId) {
+                    targetId = mappedId
+                } else if (isHashLink) {
+                    targetId = item.url.split('#')[1]
                 }
 
-                const element = document.getElementById(targetId)
-                if (element) {
-                    const { offsetTop, offsetHeight } = element
-                    if (
-                        scrollPosition >= offsetTop &&
-                        scrollPosition < offsetTop + offsetHeight
-                    ) {
+                // Special handling for Home (empty hash or just top)
+                if ((!targetId || targetId === '') && item.name === defaultActive) {
+                    if (scrollPosition < 500) {
                         setActiveTab(item.name)
+                    }
+                    continue
+                }
+
+                if (targetId) {
+                    const element = document.getElementById(targetId)
+                    if (element) {
+                        const { offsetTop, offsetHeight } = element
+                        if (
+                            scrollPosition >= offsetTop &&
+                            scrollPosition < offsetTop + offsetHeight
+                        ) {
+                            setActiveTab(item.name)
+                        }
                     }
                 }
             }
@@ -100,20 +116,21 @@ export function AnimeNavBar({ items, className, defaultActive = "Home" }: NavBar
                 targetId = item.url.split('#')[1]
             }
 
-            if (targetId) {
-                const scrollTarget = targetId === '' ? 'hero' : targetId // Handle /# or # to top
-                const targetElement = document.getElementById(scrollTarget) || document.getElementById('hero')
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth' })
-                } else if (targetId === '') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                }
-                setActiveTab(item.name)
+            // Handle scroll target
+            const scrollTarget = (!targetId || targetId === '') ? 'hero' : targetId
+            const targetElement = document.getElementById(scrollTarget)
+
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' })
+            } else if (!targetId || targetId === '') {
+                // Fallback for top of page if hero ID missing or empty target
+                window.scrollTo({ top: 0, behavior: 'smooth' })
             }
+
+            setActiveTab(item.name)
         } else {
             // It's a real page link like '/about' and we are NOT on home (or it's an unmapped external link)
             // Let default behavior happen (navigate)
-            // Or use router navigation if we want SPA feel without reload, but <a href> is better for SEO crawlability
         }
     }
 
