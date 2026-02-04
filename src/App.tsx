@@ -74,7 +74,7 @@ function AboutPage() {
     <main className="relative" role="main">
       <Helmet>
         <title>About WTF Studios | AI Creative & Media Agency</title>
-        <meta name="description" content="Learn about WTF Studios, the AI-powered creative agency founded by Vishal Yadav. We blend AI speed with human intuition to create viral moments." />
+        <meta name="description" content="Learn about WTF Studios, the AI-powered creative agency founded by Creative Engineers. We blend AI speed with human intuition to create viral moments." />
         <link rel="canonical" href="https://thewtfstudio.com/about" />
       </Helmet>
       <SiteHeader />

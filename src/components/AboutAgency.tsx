@@ -107,7 +107,7 @@ export function AboutAgency({ isPage = false }: AboutAgencyProps) {
                                 <strong className="text-foreground">WTF.Studios</strong> is a full-stack creative and media agency that sits at the intersection of artificial intelligence, brand storytelling, and viral culture.
                             </p>
                             <p>
-                                Founded by <strong className="text-foreground">Vishal Yadav</strong>, we specialize in crafting high-impact ad campaigns that are fast, intelligent, trend-sensitive, and tailor-made for Gen Z, digital natives, and internet-first consumers.
+                                Founded by <strong className="text-foreground">Creative Engineers</strong>, we specialize in crafting high-impact ad campaigns that are fast, intelligent, trend-sensitive, and tailor-made for Gen Z, digital natives, and internet-first consumers.
                             </p>
                             <p>
                                 We blend the <span className="text-accent-blue font-bold">speed of AI tools</span> with the <span className="text-accent-purple font-bold">intuition of real creators</span> to engineer campaigns that are not just creative — they’re culturally contagious.
